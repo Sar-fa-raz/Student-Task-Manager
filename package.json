@@ -1,0 +1,20 @@
+{
+  "name": "student-task-manager",
+  "version": "1.0.0",
+  "description": "A full-stack task manager for students, built with Node.js, Express and EJS.",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "dotenv": "^18.0.8",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "method-override": "^3.0.0",
+    "mysql2": "^3.24.6"
+  }
+}

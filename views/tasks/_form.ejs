@@ -1,0 +1,59 @@
+<form class="form" method="post" action="<%= action %>">
+
+    <% if (errors && errors.length) { %>
+        <div class="form-errors" role="alert">
+            <p>Fix these before saving:</p>
+            <ul>
+                <% errors.forEach((e) => { %><li><%= e %></li><% }) %>
+            </ul>
+        </div>
+    <% } %>
+
+    <div class="field">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text" maxlength="100" required
+               value="<%= task.title %>" placeholder="e.g. Finish Java assignment 3" autofocus>
+    </div>
+
+    <div class="field">
+        <label for="subject">Subject</label>
+        <input id="subject" name="subject" type="text" maxlength="40"
+               value="<%= task.subject %>" placeholder="e.g. Databases">
+    </div>
+
+    <div class="field">
+        <label for="description">Notes</label>
+        <textarea id="description" name="description" maxlength="500"
+                  placeholder="Anything you want to remember about this task"><%= task.description %></textarea>
+    </div>
+
+    <div class="field-row">
+        <div class="field">
+            <label for="priority">Priority</label>
+            <select id="priority" name="priority">
+                <% PRIORITIES.forEach((p) => { %>
+                    <option value="<%= p %>" <%= task.priority === p ? 'selected' : '' %>><%= p %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="status">Status</label>
+            <select id="status" name="status">
+                <% STATUSES.forEach((s) => { %>
+                    <option value="<%= s %>" <%= task.status === s ? 'selected' : '' %>><%= s %></option>
+                <% }) %>
+            </select>
+        </div>
+
+        <div class="field">
+            <label for="dueDate">Due date</label>
+            <input id="dueDate" name="dueDate" type="date" value="<%= task.dueDate %>">
+        </div>
+    </div>
+
+    <div class="form-actions">
+        <button class="btn" type="submit"><%= submitLabel %></button>
+        <a class="btn btn-ghost" href="<%= cancelHref %>">Cancel</a>
+    </div>
+</form>

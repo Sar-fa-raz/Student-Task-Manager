@@ -1,0 +1,130 @@
+<%- include('../partials/header', { title: 'Your tasks' }) %>
+
+<%
+    // Builds a /tasks link that keeps the current search, priority and sort
+    const link = (status) => {
+        const p = new URLSearchParams();
+        if (status !== 'all') p.set('status', status);
+        if (filters.q) p.set('q', filters.q);
+        if (filters.priority !== 'all') p.set('priority', filters.priority);
+        if (filters.sort !== 'newest') p.set('sort', filters.sort);
+        const s = p.toString();
+        return '/tasks' + (s ? '?' + s : '');
+    };
+
+    const tabs = [
+        ['all', 'All', stats.total],
+        ['pending', 'Pending', stats.pending],
+        ['in-progress', 'In progress', stats.inProgress],
+        ['completed', 'Completed', stats.completed],
+        ['overdue', 'Overdue', stats.overdue]
+    ];
+
+    const filtersActive = filters.status !== 'all' || filters.priority !== 'all' || filters.q;
+%>
+
+<div class="page-head">
+    <h1><span class="marker">Your tasks</span></h1>
+</div>
+
+<section class="summary" aria-label="Progress summary">
+    <div class="summary-top">
+        <p class="summary-text"><strong><%= stats.completed %> of <%= stats.total %></strong> tasks completed</p>
+        <% if (stats.overdue > 0) { %>
+            <a class="overdue-flag" href="<%= link('overdue') %>"><%= stats.overdue %> overdue</a>
+        <% } %>
+    </div>
+    <div class="bar" role="img" aria-label="<%= stats.pctDone %> percent completed, <%= stats.pctDoing %> percent in progress">
+        <span class="bar-done" style="width: <%= stats.pctDone %>%"></span>
+        <span class="bar-doing" style="width: <%= stats.pctDoing %>%"></span>
+    </div>
+    <ul class="legend">
+        <li><i class="dot dot-done"></i>Completed <%= stats.completed %></li>
+        <li><i class="dot dot-doing"></i>In progress <%= stats.inProgress %></li>
+        <li><i class="dot dot-pending"></i>Pending <%= stats.pending %></li>
+    </ul>
+</section>
+
+<form class="toolbar" method="get" action="/tasks">
+    <% if (filters.status !== 'all') { %>
+        <input type="hidden" name="status" value="<%= filters.status %>">
+    <% } %>
+
+    <label class="visually-hidden" for="q">Search tasks</label>
+    <input id="q" type="search" name="q" value="<%= filters.q %>" placeholder="Search by title, subject or notes">
+
+    <label class="visually-hidden" for="priority">Filter by priority</label>
+    <select id="priority" name="priority">
+        <option value="all">All priorities</option>
+        <% PRIORITIES.forEach((p) => { %>
+            <option value="<%= p %>" <%= filters.priority === p ? 'selected' : '' %>><%= p %> priority</option>
+        <% }) %>
+    </select>
+
+    <label class="visually-hidden" for="sort">Sort tasks</label>
+    <select id="sort" name="sort">
+        <option value="newest" <%= filters.sort === 'newest' ? 'selected' : '' %>>Newest first</option>
+        <option value="due" <%= filters.sort === 'due' ? 'selected' : '' %>>Due date</option>
+        <option value="priority" <%= filters.sort === 'priority' ? 'selected' : '' %>>Priority</option>
+        <option value="title" <%= filters.sort === 'title' ? 'selected' : '' %>>Title A to Z</option>
+    </select>
+
+    <button class="btn btn-ghost" type="submit">Apply</button>
+</form>
+
+<nav class="tabs" aria-label="Filter by status">
+    <% tabs.forEach(([key, label, count]) => { %>
+        <a href="<%= link(key) %>" class="<%= filters.status === key ? 'active' : '' %>" <%- filters.status === key ? 'aria-current="page"' : '' %>>
+            <%= label %> <span><%= count %></span>
+        </a>
+    <% }) %>
+</nav>
+
+<% if (tasks.length === 0) { %>
+    <div class="empty">
+        <% if (stats.total === 0) { %>
+            <h2>Nothing on your list yet</h2>
+            <p>Add your first assignment, exam or reading and it will show up here.</p>
+            <a class="btn" href="/tasks/new">Add task</a>
+        <% } else { %>
+            <h2>No tasks match these filters</h2>
+            <p>Try a different search or clear the filters.</p>
+            <% if (filtersActive) { %><a class="btn btn-ghost" href="/tasks">Clear filters</a><% } %>
+        <% } %>
+    </div>
+<% } else { %>
+    <ul class="task-list">
+        <% tasks.forEach((t) => { %>
+            <li class="task priority-<%= t.priority.toLowerCase() %><%= t.status === 'Completed' ? ' is-done' : '' %>">
+
+                <form method="post" action="/tasks/<%= t.id %>/toggle?_method=PATCH">
+                    <button class="check" type="submit"
+                            aria-label="<%= t.status === 'Completed' ? 'Mark as pending' : 'Mark as completed' %>: <%= t.title %>"
+                            title="<%= t.status === 'Completed' ? 'Mark as pending' : 'Mark as completed' %>">
+                        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>
+                    </button>
+                </form>
+
+                <div class="task-body">
+                    <a class="task-title" href="/tasks/<%= t.id %>"><%= t.title %></a>
+                    <% if (t.description) { %><p class="task-desc"><%= t.description %></p><% } %>
+                    <div class="meta">
+                        <span class="badge status-<%= t.statusSlug %>"><%= t.status %></span>
+                        <span class="badge prio prio-<%= t.priority.toLowerCase() %>"><%= t.priority %> priority</span>
+                        <% if (t.subject) { %><span class="subject"><%= t.subject %></span><% } %>
+                        <% if (t.due.text) { %><span class="due due-<%= t.due.tone %>"><%= t.due.text %></span><% } %>
+                    </div>
+                </div>
+
+                <div class="task-actions">
+                    <a class="btn btn-ghost btn-small" href="/tasks/<%= t.id %>/edit">Edit</a>
+                    <form method="post" action="/tasks/<%= t.id %>?_method=DELETE" onsubmit="return confirm('Delete this task?')">
+                        <button class="btn btn-danger btn-small" type="submit">Delete</button>
+                    </form>
+                </div>
+            </li>
+        <% }) %>
+    </ul>
+<% } %>
+
+<%- include('../partials/footer') %>

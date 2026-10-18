@@ -1,0 +1,15 @@
+<%- include('../partials/header', { title: 'Edit task' }) %>
+
+<div class="page-head">
+    <h1><span class="marker">Edit task</span></h1>
+</div>
+
+<%- include('_form', {
+    task,
+    errors,
+    action: '/tasks/' + task.id + '?_method=PATCH',
+    submitLabel: 'Save changes',
+    cancelHref: '/tasks/' + task.id
+}) %>
+
+<%- include('../partials/footer') %>

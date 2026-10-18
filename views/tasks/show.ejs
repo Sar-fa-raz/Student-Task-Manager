@@ -1,0 +1,48 @@
+<%- include('../partials/header', { title: task.title }) %>
+
+<a class="back-link" href="/tasks">Back to all tasks</a>
+
+<article class="detail priority-<%= task.priority.toLowerCase() %><%= task.status === 'Completed' ? ' is-done' : '' %>">
+    <h1 class="detail-title"><%= task.title %></h1>
+
+    <div class="meta">
+        <span class="badge status-<%= task.statusSlug %>"><%= task.status %></span>
+        <span class="badge prio prio-<%= task.priority.toLowerCase() %>"><%= task.priority %> priority</span>
+        <% if (task.due.text) { %><span class="due due-<%= task.due.tone %>"><%= task.due.text %></span><% } %>
+    </div>
+
+    <% if (task.description) { %>
+        <p class="detail-notes"><%= task.description %></p>
+    <% } else { %>
+        <p class="detail-notes muted">No notes added.</p>
+    <% } %>
+
+    <dl class="facts">
+        <div>
+            <dt>Subject</dt>
+            <dd><%= task.subject || 'Not set' %></dd>
+        </div>
+        <div>
+            <dt>Due date</dt>
+            <dd><%= task.dueDate ? formatDate(task.dueDate) : 'Not set' %></dd>
+        </div>
+        <div>
+            <dt>Created</dt>
+            <dd><%= formatDate(task.createdAt) %></dd>
+        </div>
+    </dl>
+
+    <div class="detail-actions">
+        <form method="post" action="/tasks/<%= task.id %>/toggle?_method=PATCH">
+            <button class="btn" type="submit">
+                <%= task.status === 'Completed' ? 'Reopen task' : 'Mark as completed' %>
+            </button>
+        </form>
+        <a class="btn btn-ghost" href="/tasks/<%= task.id %>/edit">Edit</a>
+        <form method="post" action="/tasks/<%= task.id %>?_method=DELETE" onsubmit="return confirm('Delete this task?')">
+            <button class="btn btn-danger" type="submit">Delete</button>
+        </form>
+    </div>
+</article>
+
+<%- include('../partials/footer') %>
